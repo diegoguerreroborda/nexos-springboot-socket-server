@@ -1,28 +1,30 @@
 package com.dhgb.sbsocket.sbsocket.controller
 
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.handler.annotation.Payload
-import org.springframework.messaging.handler.annotation.SendTo
+import org.springframework.messaging.simp.SimpMessagingTemplate
+import org.springframework.scheduling.annotation.EnableScheduling
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.web.bind.annotation.RestController
 
 //Servidor
 @RestController
+@EnableScheduling
 class Controller{
 
-    @MessageMapping("/current")
-    @SendTo("/client/messages")
-    fun receivedMessage(@Payload message: String): String {
-        println("Llegó $message")
-        return message
-    }
+    @Autowired
+    private lateinit var messagingTemplate: SimpMessagingTemplate
 
-//    @Scheduled(fixedRate = 5000)
-//    fun work1() {
-//        println("Va a enviar")
-//        @SendTo("/topic/messages")
-//        fun receivedMessage(): String {
-//            println("Va a enviar cada 5 segundos")
-//            return "Va a enviar cada 5 segundos"
-//        }
-//    }
+    @Scheduled(fixedDelay = 20000)
+    fun alarm() =
+        sendMessage("Message: each 20 seconds")
+
+    @MessageMapping("/current")
+//    @SendTo("/client/messages")
+    fun receivedMessage(@Payload message: String) =
+        println("Get: $message")
+
+    fun sendMessage(@Payload message: String) =
+            this.messagingTemplate.convertAndSend("/client/messages", message)
 }
